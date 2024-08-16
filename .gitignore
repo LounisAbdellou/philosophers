@@ -1,0 +1,4 @@
+philo
+obj
+*.a
+*.o
