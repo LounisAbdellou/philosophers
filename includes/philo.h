@@ -6,7 +6,7 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 10:30:49 by labdello          #+#    #+#             */
-/*   Updated: 2024/09/23 16:28:42 by labdello         ###   ########.fr       */
+/*   Updated: 2024/09/23 16:29:38 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include <unistd.h>
 # include <stdio.h>
 # include <stdlib.h>
+# include <limits.h>
 # include <pthread.h>
 # include <sys/time.h>
 
