@@ -6,7 +6,7 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 10:30:49 by labdello          #+#    #+#             */
-/*   Updated: 2024/09/23 16:29:38 by labdello         ###   ########.fr       */
+/*   Updated: 2024/09/30 18:51:42 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,34 @@
 # include <unistd.h>
 # include <stdio.h>
 # include <stdlib.h>
+# include <stdint.h>
 # include <limits.h>
 # include <pthread.h>
 # include <sys/time.h>
+
+typedef struct s_config
+{
+	int				philo_count;
+	int				time_to_die;
+	int				time_to_eat;
+	int				time_to_sleep;
+	int				time_must_eat;
+	unsigned long	start_ms;
+	pthread_mutex_t	print_mutex;
+}	t_config;
+
+typedef struct s_param
+{
+	int				id;
+	t_config		*config;
+	pthread_mutex_t	*forks;
+}	t_param;
+
+typedef struct s_forks
+{
+	pthread_mutex_t	*available_forks;
+	pthread_mutex_t	assigned_forks[2];
+}	t_forks;
 
 typedef enum e_fork_pos
 {
@@ -26,34 +51,20 @@ typedef enum e_fork_pos
 	E_RIGHT = 1,
 }	t_fork_pos;
 
-typedef struct s_fork
-{
-	int				index;
-	int				is_clean;
-	pthread_mutex_t	*mutex;
-	struct s_fork	*next;
-}	t_fork;
+// NUMBERS
+int				ft_isnbr(char *str);
+int				ft_atoi(char *str);
+long long		ft_atoll(char *str);
 
-typedef struct s_philo
-{
-	int				id;
-	pthread_t		*thread;
-	struct s_fork	*forks;
-	struct s_philo	*prev;
-	struct s_philo	*next;
-}	t_philo;
+// MEMORY
+void			*ft_calloc(size_t n, size_t size);
 
-typedef struct s_config
-{
-	int	eat_count;
-	int	time_to_die;
-	int	time_to_eat;
-	int	time_to_sleep;
-}	t_config;
+// TIME
+unsigned long	get_time_diff(unsigned long start_ms);
 
-int			ft_isnbr(char *str);
-int			ft_atoi(char *str);
-size_t		ft_strlen(char *str);
-long long	ft_atoll(char *str);
+// ACTIONS
+void			sleeping(int id, t_config *config);
+void			eating(int id, pthread_mutex_t forks[2], t_config *config);
+void			thinking(int id, unsigned long time_ms, t_config *config);
 
 #endif
