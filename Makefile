@@ -5,7 +5,9 @@ CFLAGS = -Wall -Wextra -Werror -Iincludes
 SRC_DIR = src
 OBJ_DIR = obj
 
-SRCS = $(addprefix $(SRC_DIR)/, main.c numbers.c memory.c actions.c time.c)
+SRCS = $(addprefix $(SRC_DIR)/, main.c numbers.c memory.c actions.c time.c \
+	   routines.c init.c)
+
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 all: $(NAME)
