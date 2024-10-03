@@ -6,7 +6,7 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 10:30:49 by labdello          #+#    #+#             */
-/*   Updated: 2024/10/02 15:10:03 by solid_42         ###   ########.fr       */
+/*   Updated: 2024/10/03 12:50:03 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,13 +31,13 @@ typedef struct s_config
 	unsigned long	start_ms;
 	pthread_mutex_t	print_mutex;
 	pthread_mutex_t	death_mutex;
-	pthread_mutex_t	done_mutex;
+	pthread_mutex_t	eat_mutex;
 }	t_config;
 
 typedef struct s_param
 {
 	int				id;
-	int				*done_count;
+	int				*eat_count;
 	int				*has_dead;
 	t_config		*config;
 	pthread_t		*philos;
@@ -59,7 +59,7 @@ typedef enum e_fork_pos
 // INIT
 void			init_config(t_config *config, char **args, int arg_count);
 void			init_shared_vars(t_config *conf, t_param **params, int *dead,
-					int *done);
+					int *eat);
 int				init_philo(t_config *c, t_param **pa, pthread_mutex_t **f,
 					pthread_t **ph);
 
@@ -75,10 +75,9 @@ void			*ft_calloc(size_t n, size_t size);
 unsigned long	get_time_diff(unsigned long start_ms);
 
 // ACTIONS
-void			sleeping(int id, size_t time, t_config *config);
+void			sleeping(t_param *params, size_t time);
 void			thinking(int id, size_t time, t_config *config);
-void			eating(int id, size_t time, pthread_mutex_t forks[2],
-					t_config *config);
+void			eating(t_param *params, size_t time, pthread_mutex_t forks[2]);
 
 // ROUTINES
 void			*obs_routine(void *ptr);

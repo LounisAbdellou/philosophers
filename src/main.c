@@ -6,7 +6,7 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 10:29:33 by labdello          #+#    #+#             */
-/*   Updated: 2024/10/02 15:17:20 by solid_42         ###   ########.fr       */
+/*   Updated: 2024/10/03 13:05:49 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,21 +34,21 @@ int	philosophers(t_config *config, t_param *params, pthread_t *philos)
 {
 	int			i;
 	int			has_dead;
-	int			done_count;
-	/* pthread_t	observer; */
+	int			eat_count;
+	pthread_t	observer;
 
 	i = 0;
-	init_shared_vars(config, &params, &has_dead, &done_count);
+	init_shared_vars(config, &params, &has_dead, &eat_count);
 	while (i < config->philo_count)
 	{
 		if (pthread_create(&philos[i], NULL, &philos_routine, &params[i]) != 0)
 			return (free(philos), free(params), 0);
 		i++;
 	}
-	/* params[i].philos = philos; */
-	/* if (pthread_create(&observer, NULL, &obs_routine, &params[i]) != 0) */
-	/* 	return (free(philos), free(params), 0); */
-	/* pthread_join(observer, NULL); */
+	params[i].philos = philos;
+	if (pthread_create(&observer, NULL, &obs_routine, &params[i]) != 0)
+		return (free(philos), free(params), 0);
+	pthread_join(observer, NULL);
 	while (i > 0)
 		pthread_join(philos[--i], NULL);
 	return (free(philos), free(params), 1);

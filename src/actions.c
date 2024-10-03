@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/27 17:52:08 by labdello          #+#    #+#             */
-/*   Updated: 2024/10/02 14:40:47 by solid_42         ###   ########.fr       */
+/*   Created: 2024/10/03 12:26:44 by labdello          #+#    #+#             */
+/*   Updated: 2024/10/03 12:47:52 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,28 +28,29 @@ void	thinking(int id, size_t time, t_config *config)
 	usleep(time * 1000);
 }
 
-void	sleeping(int id, size_t time, t_config *config)
+void	sleeping(t_param *params, size_t time)
 {
 	size_t	timestamp;
 
-	timestamp = get_time_diff(config->start_ms);
-	print_action("%lu %d is sleeping\n", timestamp, id, config);
+	timestamp = get_time_diff(params->config->start_ms);
+	print_action("%lu %d is sleeping\n", timestamp, params->id, params->config);
 	usleep(time * 1000);
 }
 
-void	eating(int id, size_t time, pthread_mutex_t forks[2], t_config *config)
+void	eating(t_param *params, size_t time, pthread_mutex_t forks[2])
 {
+	int		id;
 	size_t	timestamp;
 
-	(void)forks;
-	/* pthread_mutex_lock(&forks[E_LEFT]); */
-	timestamp = get_time_diff(config->start_ms);
-	/* print_action("%lu %d has taken a fork\n", timestamp, id, config); */
-	/* pthread_mutex_lock(&forks[E_RIGHT]); */
-	/* timestamp = get_time_diff(config->start_ms); */
-	/* print_action("%lu %d has taken a fork\n", timestamp, id, config); */
-	print_action("%lu %d is eating\n", timestamp, id, config);
+	id = params->id;
+	pthread_mutex_lock(&forks[E_LEFT]);
+	timestamp = get_time_diff(params->config->start_ms);
+	print_action("%lu %d has taken a fork\n", timestamp, id, params->config);
+	pthread_mutex_lock(&forks[E_RIGHT]);
+	timestamp = get_time_diff(params->config->start_ms);
+	print_action("%lu %d has taken a fork\n", timestamp, id, params->config);
+	print_action("%lu %d is eating\n", timestamp, id, params->config);
 	usleep(time * 1000);
-	/* pthread_mutex_unlock(&forks[E_LEFT]); */
-	/* pthread_mutex_unlock(&forks[E_RIGHT]); */
+	pthread_mutex_unlock(&forks[E_LEFT]);
+	pthread_mutex_unlock(&forks[E_RIGHT]);
 }

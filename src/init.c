@@ -6,7 +6,7 @@
 /*   By: solid_42 </var/spool/mail/solid_42>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 14:52:47 by solid_42          #+#    #+#             */
-/*   Updated: 2024/10/02 15:10:48 by solid_42         ###   ########.fr       */
+/*   Updated: 2024/10/03 12:50:18 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,17 +25,17 @@ void	init_config(t_config *config, char **args, int arg_count)
 	config->start_ms = get_time_diff(0);
 }
 
-void	init_shared_vars(t_config *conf, t_param **params, int *dead, int *done)
+void	init_shared_vars(t_config *conf, t_param **params, int *dead, int *eat)
 {
 	int	i;
 
 	i = 0;
 	*dead = 0;
-	*done = 0;
+	*eat = 0;
 	while (i < (conf->philo_count + 1))
 	{
 		(*params)[i].has_dead = dead;
-		(*params)[i].done_count = done;
+		(*params)[i].eat_count = eat;
 		i++;
 	}
 }
@@ -45,7 +45,7 @@ int	init_philo(t_config *c, t_param **pa, pthread_mutex_t **f, pthread_t **ph)
 	int	i;
 
 	i = 0;
-	pthread_mutex_init(&(c->done_mutex), NULL);
+	pthread_mutex_init(&(c->eat_mutex), NULL);
 	pthread_mutex_init(&(c->death_mutex), NULL);
 	pthread_mutex_init(&(c->print_mutex), NULL);
 	*pa = ft_calloc(c->philo_count + 2, sizeof(t_param));
