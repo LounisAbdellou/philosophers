@@ -6,7 +6,7 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 10:30:49 by labdello          #+#    #+#             */
-/*   Updated: 2024/10/03 12:50:03 by labdello         ###   ########.fr       */
+/*   Updated: 2024/10/05 00:21:31 by solid_42         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,25 +23,35 @@
 
 typedef struct s_config
 {
-	int				philo_count;
-	int				time_to_die;
-	int				time_to_eat;
-	int				time_to_sleep;
-	int				time_must_eat;
-	unsigned long	start_ms;
-	pthread_mutex_t	print_mutex;
-	pthread_mutex_t	death_mutex;
-	pthread_mutex_t	eat_mutex;
+	int				philo_c;
+	int				t_die;
+	int				t_eat;
+	int				t_sleep;
+	int				tm_eat;
+	size_t			start_ms;
+	pthread_mutex_t	stop_m;
+	pthread_mutex_t	print_m;
+	pthread_mutex_t	death_m;
+	pthread_mutex_t	eat_m;
 }	t_config;
+
+typedef struct s_obs_param
+{
+	int				*has_dead;
+	size_t			*last_ate;
+	pthread_mutex_t	stop_m;
+}	t_obs_param;
 
 typedef struct s_param
 {
 	int				id;
-	int				*eat_count;
+	int				*eat_c;
 	int				*has_dead;
+	size_t			last_ate;
 	t_config		*config;
-	pthread_t		*philos;
-	pthread_mutex_t	*forks;
+	pthread_t		thread;
+	pthread_mutex_t	l_fork;
+	pthread_mutex_t	*r_fork;
 }	t_param;
 
 typedef struct s_forks
@@ -57,11 +67,10 @@ typedef enum e_fork_pos
 }	t_fork_pos;
 
 // INIT
+int				init_philo(t_config *c, t_param **params);
 void			init_config(t_config *config, char **args, int arg_count);
 void			init_shared_vars(t_config *conf, t_param **params, int *dead,
 					int *eat);
-int				init_philo(t_config *c, t_param **pa, pthread_mutex_t **f,
-					pthread_t **ph);
 
 // NUMBERS
 int				ft_isnbr(char *str);
@@ -72,15 +81,20 @@ long long		ft_atoll(char *str);
 void			*ft_calloc(size_t n, size_t size);
 
 // TIME
-unsigned long	get_time_diff(unsigned long start_ms);
+size_t			get_time_diff(size_t start_ms);
+size_t			get_action_time(t_param *params, size_t	initial_time);
 
 // ACTIONS
+void			print_action(char *msg, size_t time, t_param *params);
+void			f_print_action(char *msg, size_t time, t_param *params);
+void			thinking(t_param *params);
 void			sleeping(t_param *params, size_t time);
-void			thinking(int id, size_t time, t_config *config);
-void			eating(t_param *params, size_t time, pthread_mutex_t forks[2]);
+void			eating(t_param *params, size_t time);
 
 // ROUTINES
 void			*obs_routine(void *ptr);
 void			*philos_routine(void *ptr);
+int				has_dead(t_param *params);
+int				has_finished(t_param *params);
 
 #endif

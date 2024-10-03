@@ -6,7 +6,7 @@ SRC_DIR = src
 OBJ_DIR = obj
 
 SRCS = $(addprefix $(SRC_DIR)/, main.c numbers.c memory.c actions.c time.c \
-	   routines.c init.c)
+	   routines.c init.c print.c)
 
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 

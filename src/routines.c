@@ -6,70 +6,83 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 12:26:01 by labdello          #+#    #+#             */
-/*   Updated: 2024/10/03 14:45:23 by labdello         ###   ########.fr       */
+/*   Updated: 2024/10/07 18:37:28 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	*obs_routine(void *ptr)
+int	has_dead(t_param *params)
 {
-	int			i;
-	int			done;
-	t_param		*params;
-	t_config	*config;
-
-	i = 0;
-	params = (t_param *)ptr;
-	config = params->config;
-	while (1)
-	{
-		pthread_mutex_lock(&(params->config->eat_mutex));
-		done = *(params->eat_count) == config->philo_count * config->time_must_eat;
-		pthread_mutex_unlock(&(params->config->eat_mutex));
-		if (*params->has_dead == 1 || done)
-		{	
-			while (i < params->config->philo_count)
-			{
-				pthread_detach(params->philos[i]);
-				i++;
-			}
-			return (pthread_mutex_unlock(&(params->config->eat_mutex)), NULL);
-		}
-	}
-	return (NULL);
+	pthread_mutex_lock(&(params->config->death_m));
+	if ((*params->has_dead))
+		return (pthread_mutex_unlock(&(params->config->death_m)), 1);
+	pthread_mutex_unlock(&(params->config->death_m));
+	return (0);
 }
 
-void	assign_forks(pthread_mutex_t (*assigned_forks)[2], t_param *params)
+int	has_finished(t_param *params)
 {
-	(*assigned_forks)[E_LEFT] = params->forks[params->id - 1];
-	if (params->id >= params->config->philo_count)
-		(*assigned_forks)[E_RIGHT] = params->forks[0];
-	else
-		(*assigned_forks)[E_RIGHT] = params->forks[params->id];
+	t_config	*config;
+
+	config = params->config;
+	pthread_mutex_lock(&(params->config->eat_m));
+	if (*(params->eat_c) == config->philo_c * config->tm_eat)
+		return (pthread_mutex_unlock(&(params->config->eat_m)), 1);
+	pthread_mutex_unlock(&(params->config->eat_m));
+	return (0);
+}
+
+void	*death_check(void *ptr)
+{
+	size_t	timestamp;
+	t_param	*params;
+
+	params = (t_param *)ptr;
+	while (!has_dead(params) && !has_finished(params))
+	{
+		pthread_mutex_lock(&(params->config->stop_m));
+		timestamp = get_time_diff(params->last_ate);
+		pthread_mutex_unlock(&(params->config->stop_m));
+		if (timestamp < (size_t)params->config->t_die)
+			continue ;
+		timestamp = get_time_diff(params->config->start_ms);
+		pthread_mutex_lock(&(params->config->death_m));
+		if ((*params->has_dead))
+			return (pthread_mutex_unlock(&(params->config->death_m)), NULL);
+		*(params->has_dead) = 1;
+		f_print_action("%lu %d died\n", timestamp, params);
+		pthread_mutex_unlock(&(params->config->death_m));
+		break ;
+	}
+	return (NULL);
 }
 
 void	*philos_routine(void *ptr)
 {
 	int				this_eat_count;
 	t_param			*params;
-	pthread_mutex_t	assigned_forks[2];
+	pthread_t		observer;
 
 	this_eat_count = 0;
 	params = (t_param *)ptr;
-	assign_forks(&assigned_forks, params);
+	params->last_ate = get_time_diff(0);
 	if (params->id % 2 == 0)
-		usleep(params->config->time_to_eat * 1000);
-	while (1)
+		usleep(params->config->t_eat * 1000);
+	while (!has_dead(params) && !has_finished(params))
 	{
-		eating(params, params->config->time_to_eat, assigned_forks);
-		if (this_eat_count++ < params->config->time_must_eat)
+		pthread_create(&observer, NULL, &death_check, params);
+		if (this_eat_count != params->config->tm_eat)
+			eating(params, params->config->t_eat);
+		if (this_eat_count++ < params->config->tm_eat)
 		{
-			pthread_mutex_lock(&(params->config->eat_mutex));
-			*(params->eat_count) += 1;
-			pthread_mutex_unlock(&(params->config->eat_mutex));
+			pthread_mutex_lock(&(params->config->eat_m));
+			*(params->eat_c) += 1;
+			pthread_mutex_unlock(&(params->config->eat_m));
 		}
-		sleeping(params, params->config->time_to_sleep);
-	}	
+		sleeping(params, params->config->t_sleep);
+		pthread_detach(observer);
+		thinking(params);
+	}
 	return (NULL);
 }

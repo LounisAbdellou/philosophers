@@ -6,7 +6,7 @@
 /*   By: solid_42 </var/spool/mail/solid_42>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 14:52:47 by solid_42          #+#    #+#             */
-/*   Updated: 2024/10/03 12:50:18 by labdello         ###   ########.fr       */
+/*   Updated: 2024/10/04 23:07:40 by solid_42         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,56 +14,57 @@
 
 void	init_config(t_config *config, char **args, int arg_count)
 {
-	config->philo_count = ft_atoi(args[1]);
-	config->time_to_die = ft_atoi(args[2]);
-	config->time_to_eat = ft_atoi(args[3]);
-	config->time_to_sleep = ft_atoi(args[4]);
+	config->philo_c = ft_atoi(args[1]);
+	config->t_die = ft_atoi(args[2]);
+	config->t_eat = ft_atoi(args[3]);
+	config->t_sleep = ft_atoi(args[4]);
 	if (arg_count == 6)
-		config->time_must_eat = ft_atoi(args[5]);
+		config->tm_eat = ft_atoi(args[5]);
 	else
-		config->time_must_eat = -1;
+		config->tm_eat = -1;
 	config->start_ms = get_time_diff(0);
 }
 
 void	init_shared_vars(t_config *conf, t_param **params, int *dead, int *eat)
 {
 	int	i;
+	int	id;
 
 	i = 0;
 	*dead = 0;
 	*eat = 0;
-	while (i < (conf->philo_count + 1))
+	while (i < conf->philo_c)
 	{
+		id = (*params)[i].id;
 		(*params)[i].has_dead = dead;
-		(*params)[i].eat_count = eat;
+		(*params)[i].eat_c = eat;
+		if (id >= (*params)[i].config->philo_c)
+			(*params)[i].r_fork = &((*params)[0].l_fork);
+		else
+			(*params)[i].r_fork = &((*params)[id].l_fork);
 		i++;
 	}
 }
 
-int	init_philo(t_config *c, t_param **pa, pthread_mutex_t **f, pthread_t **ph)
+int	init_philo(t_config *config, t_param **params)
 {
 	int	i;
 
 	i = 0;
-	pthread_mutex_init(&(c->eat_mutex), NULL);
-	pthread_mutex_init(&(c->death_mutex), NULL);
-	pthread_mutex_init(&(c->print_mutex), NULL);
-	*pa = ft_calloc(c->philo_count + 2, sizeof(t_param));
-	if (!(*pa))
+	pthread_mutex_init(&(config->eat_m), NULL);
+	pthread_mutex_init(&(config->death_m), NULL);
+	pthread_mutex_init(&(config->print_m), NULL);
+	pthread_mutex_init(&(config->stop_m), NULL);
+	*params = ft_calloc(config->philo_c + 1, sizeof(t_param));
+	if (!(*params))
 		return (0);
-	*ph = ft_calloc(c->philo_count + 1, sizeof(pthread_t));
-	if (!(*ph))
-		return (free(*pa), 0);
-	*f = ft_calloc(c->philo_count + 1, sizeof(pthread_mutex_t));
-	if (!(*f))
-		return (free(*pa), free(*ph), 0);
-	while (i < (c->philo_count + 1))
-		pthread_mutex_init(&(*f)[i++], NULL);
-	while (i >= 0)
+	while (i < config->philo_c)
 	{
-		(*pa)[i].id = i + 1;
-		(*pa)[i].forks = *f;
-		(*pa)[i--].config = c;
+		(*params)[i].id = i + 1;
+		(*params)[i].config = config;
+		(*params)[i].r_fork = NULL;
+		pthread_mutex_init(&((*params)[i].l_fork), NULL);
+		i++;
 	}
 	return (1);
 }

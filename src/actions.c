@@ -6,26 +6,18 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 12:26:44 by labdello          #+#    #+#             */
-/*   Updated: 2024/10/03 12:47:52 by labdello         ###   ########.fr       */
+/*   Updated: 2024/10/07 18:41:06 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-static void	print_action(char *msg, size_t time, int id, t_config *config)
-{
-	pthread_mutex_lock(&(config->print_mutex));
-	printf(msg, time, id);
-	pthread_mutex_unlock(&(config->print_mutex));
-}
-
-void	thinking(int id, size_t time, t_config *config)
+void	thinking(t_param *params)
 {
 	size_t	timestamp;
 
-	timestamp = get_time_diff(config->start_ms);
-	print_action("%lu %d is thinking\n", timestamp, id, config);
-	usleep(time * 1000);
+	timestamp = get_time_diff(params->config->start_ms);
+	print_action("%lu %d is thinking\n", timestamp, params);
 }
 
 void	sleeping(t_param *params, size_t time)
@@ -33,24 +25,47 @@ void	sleeping(t_param *params, size_t time)
 	size_t	timestamp;
 
 	timestamp = get_time_diff(params->config->start_ms);
-	print_action("%lu %d is sleeping\n", timestamp, params->id, params->config);
+	print_action("%lu %d is sleeping\n", timestamp, params);
 	usleep(time * 1000);
 }
 
-void	eating(t_param *params, size_t time, pthread_mutex_t forks[2])
+void	take_forks(t_param *params)
 {
-	int		id;
-	size_t	timestamp;
+	pthread_mutex_t	*first;
+	pthread_mutex_t	*second;
 
-	id = params->id;
-	pthread_mutex_lock(&forks[E_LEFT]);
-	timestamp = get_time_diff(params->config->start_ms);
-	print_action("%lu %d has taken a fork\n", timestamp, id, params->config);
-	pthread_mutex_lock(&forks[E_RIGHT]);
-	timestamp = get_time_diff(params->config->start_ms);
-	print_action("%lu %d has taken a fork\n", timestamp, id, params->config);
-	print_action("%lu %d is eating\n", timestamp, id, params->config);
+	if (params->id % 2 != 0)
+	{
+		first = &params->l_fork;
+		second = params->r_fork;
+	}
+	else
+	{
+		first = params->r_fork;
+		second = &params->l_fork;
+	}
+	pthread_mutex_lock(first);
+	print_action("%lu %d has taken a fork\n",
+		get_time_diff(params->config->start_ms), params);
+	if (params->config->philo_c == 1)
+	{
+		usleep(params->config->t_die * 1000);
+		return ;
+	}
+	pthread_mutex_lock(second);
+	print_action("%lu %d has taken a fork\n",
+		get_time_diff(params->config->start_ms), params);
+}
+
+void	eating(t_param *params, size_t time)
+{
+	take_forks(params);
+	print_action("%lu %d is eating\n",
+		get_time_diff(params->config->start_ms), params);
+	pthread_mutex_lock(&(params->config->stop_m));
+	params->last_ate = get_time_diff(0);
+	pthread_mutex_unlock(&(params->config->stop_m));
 	usleep(time * 1000);
-	pthread_mutex_unlock(&forks[E_LEFT]);
-	pthread_mutex_unlock(&forks[E_RIGHT]);
+	pthread_mutex_unlock(params->r_fork);
+	pthread_mutex_unlock(&params->l_fork);
 }
