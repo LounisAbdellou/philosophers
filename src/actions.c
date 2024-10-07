@@ -6,7 +6,7 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 12:26:44 by labdello          #+#    #+#             */
-/*   Updated: 2024/10/07 18:41:06 by labdello         ###   ########.fr       */
+/*   Updated: 2024/10/07 19:56:39 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,15 +34,15 @@ void	take_forks(t_param *params)
 	pthread_mutex_t	*first;
 	pthread_mutex_t	*second;
 
-	if (params->id % 2 != 0)
-	{
-		first = &params->l_fork;
-		second = params->r_fork;
-	}
-	else
+	if (params->id % 2 == 0)
 	{
 		first = params->r_fork;
 		second = &params->l_fork;
+	}
+	else
+	{
+		first = &params->l_fork;
+		second = params->r_fork;
 	}
 	pthread_mutex_lock(first);
 	print_action("%lu %d has taken a fork\n",
@@ -66,6 +66,14 @@ void	eating(t_param *params, size_t time)
 	params->last_ate = get_time_diff(0);
 	pthread_mutex_unlock(&(params->config->stop_m));
 	usleep(time * 1000);
-	pthread_mutex_unlock(params->r_fork);
-	pthread_mutex_unlock(&params->l_fork);
+	if (params->id % 2 == 0)
+	{
+		pthread_mutex_unlock(params->r_fork);
+		pthread_mutex_unlock(&params->l_fork);
+	}
+	else
+	{
+		pthread_mutex_unlock(&params->l_fork);
+		pthread_mutex_unlock(params->r_fork);
+	}
 }

@@ -6,7 +6,7 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 12:26:01 by labdello          #+#    #+#             */
-/*   Updated: 2024/10/07 18:37:28 by labdello         ###   ########.fr       */
+/*   Updated: 2024/10/07 19:50:48 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,28 +61,28 @@ void	*death_check(void *ptr)
 void	*philos_routine(void *ptr)
 {
 	int				this_eat_count;
-	t_param			*params;
+	t_param			*p;
 	pthread_t		observer;
 
 	this_eat_count = 0;
-	params = (t_param *)ptr;
-	params->last_ate = get_time_diff(0);
-	if (params->id % 2 == 0)
-		usleep(params->config->t_eat * 1000);
-	while (!has_dead(params) && !has_finished(params))
+	p = (t_param *)ptr;
+	p->last_ate = get_time_diff(0);
+	if (p->config->philo_c % 2 != 0 && p->id == p->config->philo_c)
+		usleep(p->config->t_eat * 1000);
+	while (!has_dead(p) && !has_finished(p))
 	{
-		pthread_create(&observer, NULL, &death_check, params);
-		if (this_eat_count != params->config->tm_eat)
-			eating(params, params->config->t_eat);
-		if (this_eat_count++ < params->config->tm_eat)
+		pthread_create(&observer, NULL, &death_check, p);
+		if (this_eat_count != p->config->tm_eat)
+			eating(p, p->config->t_eat);
+		if (this_eat_count++ < p->config->tm_eat)
 		{
-			pthread_mutex_lock(&(params->config->eat_m));
-			*(params->eat_c) += 1;
-			pthread_mutex_unlock(&(params->config->eat_m));
+			pthread_mutex_lock(&(p->config->eat_m));
+			*(p->eat_c) += 1;
+			pthread_mutex_unlock(&(p->config->eat_m));
 		}
-		sleeping(params, params->config->t_sleep);
+		sleeping(p, p->config->t_sleep);
 		pthread_detach(observer);
-		thinking(params);
+		thinking(p);
 	}
 	return (NULL);
 }
