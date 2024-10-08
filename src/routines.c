@@ -6,7 +6,7 @@
 /*   By: labdello <labdello@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 12:26:01 by labdello          #+#    #+#             */
-/*   Updated: 2024/10/07 19:50:48 by labdello         ###   ########.fr       */
+/*   Updated: 2024/10/08 10:30:27 by labdello         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void	*death_check(void *ptr)
 		pthread_mutex_lock(&(params->config->stop_m));
 		timestamp = get_time_diff(params->last_ate);
 		pthread_mutex_unlock(&(params->config->stop_m));
-		if (timestamp < (size_t)params->config->t_die)
+		if (timestamp < ((size_t)params->config->t_die) + 5)
 			continue ;
 		timestamp = get_time_diff(params->config->start_ms);
 		pthread_mutex_lock(&(params->config->death_m));
